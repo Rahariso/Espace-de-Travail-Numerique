@@ -14,28 +14,32 @@ class ProfilController extends Controller
         return response()->json(Profil::all(), 200);
     }
 
-    // 🔹 CREATE
+    // 🔹 CREATE OR UPDATE
     public function store(Request $request)
     {
+        // Validation
         $request->validate([
             'nom' => 'required|string',
             'prenom' => 'required|string',
-            'numero_matricule' => 'required|unique:profils',
+            'numero_matricule' => 'required|string',
             'mot_de_passe' => 'required|min:6',
             'service' => 'required|string',
             'fonction' => 'required|string',
             'telephone' => 'nullable|string',
         ]);
 
-        $profil = Profil::create([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'numero_matricule' => $request->numero_matricule,
-            'mot_de_passe' => Hash::make($request->mot_de_passe),
-            'service' => $request->service,
-            'fonction' => $request->fonction,
-            'telephone' => $request->telephone,
-        ]);
+        // Create or update based on numero_matricule
+        $profil = Profil::updateOrCreate(
+            ['numero_matricule' => $request->numero_matricule],
+            [
+                'nom' => $request->nom,
+                'prenom' => $request->prenom,
+                'mot_de_passe' => Hash::make($request->mot_de_passe),
+                'service' => $request->service,
+                'fonction' => $request->fonction,
+                'telephone' => $request->telephone,
+            ]
+        );
 
         return response()->json($profil, 201);
     }
@@ -52,7 +56,15 @@ class ProfilController extends Controller
     {
         $profil = Profil::findOrFail($id);
 
-        $profil->update($request->all());
+        // On ne modifie pas le numero_matricule dans update
+        $data = $request->except('numero_matricule');
+
+        // Si le mot de passe est fourni, hash
+        if (isset($data['mot_de_passe'])) {
+            $data['mot_de_passe'] = Hash::make($data['mot_de_passe']);
+        }
+
+        $profil->update($data);
 
         return response()->json($profil, 200);
     }
