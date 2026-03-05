@@ -10,28 +10,25 @@ class ProfilSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crée ou met à jour les profils
         Profil::updateOrCreate(
-            ['numero_matricule' => 'MAT001'],
+            ['matricule' => 'MAT001'],
             [
                 'nom' => 'RAHARISON',
-                'prenom' => 'Frédéric Vestephan',
-                'mot_de_passe' => Hash::make('123456'),
-                'service' => 'Informatique',
+                'role' => 'Administrateur',
                 'fonction' => 'Développeur',
-                'telephone' => '0340000000'
+                'telephone' => '0340000000',
+                'mot_de_passe' => Hash::make('123456')
             ]
         );
 
         Profil::updateOrCreate(
-            ['numero_matricule' => 'MAT002'],
+            ['matricule' => 'MAT002'],
             [
-                'nom' => 'RAHARINORO',
-                'prenom' => 'Alice',
-                'mot_de_passe' => Hash::make('123456'),
-                'service' => 'RH',
-                'fonction' => 'Manager',
-                'telephone' => '0341111111'
+                'nom' => 'RAKOTO',
+                'role' => 'Utilisateur',
+                'fonction' => 'Secrétaire',
+                'telephone' => '0341111111',
+                'mot_de_passe' => Hash::make('123456')
             ]
         );
     }

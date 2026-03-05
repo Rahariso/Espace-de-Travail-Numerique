@@ -8,12 +8,15 @@ class Profil extends Model
 {
     protected $fillable = [
         'nom',
-        'prenom',
-        'numero_matricule',
-        'mot_de_passe',
-        'service',
+        'matricule',
+        'role',
         'fonction',
-        'telephone'
+        'telephone',
+        'mot_de_passe'
+    ];
+
+    protected $hidden = [
+        'mot_de_passe'
     ];
 
     public function activites()

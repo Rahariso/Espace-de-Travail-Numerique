@@ -8,22 +8,22 @@ use Carbon\Carbon;
 class Activite extends Model
 {
     protected $fillable = [
-        'reference',
-        'description',
-        'pta',
-        'bailleur',
+        'nom_activite',
+        'statut',
+        'responsable',
+        'participants',
+        'commentaire',
         'date_debut',
-        'date_fin',
-        'profil_id'
+        'date_fin'
     ];
 
-    // Indique à Laravel que ce sont des dates
     protected $casts = [
+        'participants' => 'array',
         'date_debut' => 'date',
         'date_fin' => 'date',
     ];
 
-    // FORMAT SORTIE JSON → dd/mm/yyyy
+    // Format JSON sortie → dd/mm/yyyy
     public function getDateDebutAttribute($value)
     {
         return Carbon::parse($value)->format('d/m/Y');
@@ -32,10 +32,5 @@ class Activite extends Model
     public function getDateFinAttribute($value)
     {
         return Carbon::parse($value)->format('d/m/Y');
-    }
-
-    public function profil()
-    {
-        return $this->belongsTo(Profil::class);
     }
 }
