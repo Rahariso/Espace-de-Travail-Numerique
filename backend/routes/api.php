@@ -1,56 +1,33 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\ActiviteController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfilController;
+use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-*/
-
-// ROUTE TEST
 Route::get('/', function () {
     return response()->json([
-        'message' => 'API ETN fonctionne'
+        'message' => 'API ETN fonctionne',
     ]);
 });
 
+Route::post('/login', [AuthController::class, 'login']);
 
-/*
-|--------------------------------------------------------------------------
-| ROUTES PUBLIQUES
-|--------------------------------------------------------------------------
-*/
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-// PROFILS
-Route::get('/profils', [ProfilController::class, 'index']);
-Route::get('/profils/{id}', [ProfilController::class, 'show']);
-Route::get('/profils/search/{keyword}', [ProfilController::class, 'search']);
-
-// ACTIVITES
-Route::get('/activites', [ActiviteController::class, 'index']);
-Route::get('/activites/{id}', [ActiviteController::class, 'show']);
-Route::get('/activites/search/{keyword}', [ActiviteController::class, 'search']);
-
-
-/*
-|--------------------------------------------------------------------------
-| ROUTES PROTEGEES (AUTHENTIFICATION)
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth:sanctum'])->group(function () {
-
-    // PROFILS
+    Route::get('/profils', [ProfilController::class, 'index']);
+    Route::get('/profils/{id}', [ProfilController::class, 'show']);
+    Route::get('/profils/search/{keyword}', [ProfilController::class, 'search']);
     Route::post('/profils', [ProfilController::class, 'store']);
     Route::put('/profils/{id}', [ProfilController::class, 'update']);
     Route::delete('/profils/{id}', [ProfilController::class, 'destroy']);
 
-    // ACTIVITES
+    Route::get('/activites', [ActiviteController::class, 'index']);
+    Route::get('/activites/{id}', [ActiviteController::class, 'show']);
+    Route::get('/activites/search/{keyword}', [ActiviteController::class, 'search']);
     Route::post('/activites', [ActiviteController::class, 'store']);
     Route::put('/activites/{id}', [ActiviteController::class, 'update']);
     Route::delete('/activites/{id}', [ActiviteController::class, 'destroy']);
-
 });

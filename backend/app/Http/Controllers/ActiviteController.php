@@ -3,143 +3,141 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activite;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ActiviteController extends Controller
 {
-
-    // GET ALL
     public function index()
     {
         return response()->json(
-            Activite::all(),
+            Activite::with('profil')->get(),
             200
         );
     }
 
+    public function show($id)
+    {
+        $activite = Activite::with('profil')->findOrFail($id);
 
-    // CREATE
+        return response()->json($activite, 200);
+    }
+
     public function store(Request $request)
     {
-
-        $data = $request->all();
-
-        try {
-
-            $data['date_debut'] = Carbon::createFromFormat('d/m/Y', $data['date_debut'])->format('Y-m-d');
-
-            $data['date_fin'] = Carbon::createFromFormat('d/m/Y', $data['date_fin'])->format('Y-m-d');
-
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'error' => 'Format date invalide (dd/mm/yyyy)'
-            ], 422);
-
+        if ($request->user()->role !== 'Administrateur') {
+            return response()->json(['message' => 'Accès interdit'], 403);
         }
 
-        $request->merge($data);
+        $request->merge([
+            'date_debut' => $this->normalizeDate($request->date_debut),
+            'date_fin' => $this->normalizeDate($request->date_fin),
+        ]);
 
         $request->validate([
-
             'nom_activite' => 'required|string',
             'statut' => 'required|string',
             'responsable' => 'required|string',
-            'participants' => 'nullable|array',
-            'commentaire' => 'nullable|string',
-
             'date_debut' => 'required|date',
             'date_fin' => 'required|date',
-
+            'profil_id' => 'required|exists:profils,id',
+            'participants' => 'nullable|array',
+            'participants.*' => 'string',
+            'commentaire' => 'nullable|string',
         ]);
 
-        $activite = Activite::create($data);
+        $activite = Activite::create([
+            'nom_activite' => $request->nom_activite,
+            'statut' => $request->statut,
+            'responsable' => $request->responsable,
+            'participants' => $request->participants ?? [],
+            'commentaire' => $request->commentaire,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
+            'profil_id' => $request->profil_id,
+        ]);
 
-        return response()->json($activite,201);
+        return response()->json($activite, 201);
     }
 
-
-    // GET ONE
-    public function show($id)
+    public function update(Request $request, $id)
     {
-        $activite = Activite::findOrFail($id);
-
-        return response()->json($activite,200);
-    }
-
-
-    // UPDATE
-    public function update(Request $request,$id)
-    {
-
-        $activite = Activite::findOrFail($id);
-
-        $data = $request->all();
-
-        try {
-
-            if(isset($data['date_debut'])){
-                $data['date_debut'] = Carbon::createFromFormat('d/m/Y',$data['date_debut'])->format('Y-m-d');
-            }
-
-            if(isset($data['date_fin'])){
-                $data['date_fin'] = Carbon::createFromFormat('d/m/Y',$data['date_fin'])->format('Y-m-d');
-            }
-
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'error'=>'Format date invalide'
-            ],422);
-
+        if ($request->user()->role !== 'Administrateur') {
+            return response()->json(['message' => 'Accès interdit'], 403);
         }
 
-        $request->merge($data);
+        $activite = Activite::findOrFail($id);
 
-        $request->validate([
-
-            'nom_activite' => 'sometimes|required|string',
-            'statut' => 'sometimes|required|string',
-            'responsable' => 'sometimes|required|string',
-            'participants' => 'sometimes|array',
-            'commentaire' => 'nullable|string',
-
-            'date_debut' => 'sometimes|date',
-            'date_fin' => 'sometimes|date',
-
+        $request->merge([
+            'date_debut' => $this->normalizeDate($request->date_debut),
+            'date_fin' => $this->normalizeDate($request->date_fin),
         ]);
 
-        $activite->update($data);
+        $request->validate([
+            'nom_activite' => 'required|string',
+            'statut' => 'required|string',
+            'responsable' => 'required|string',
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date',
+            'profil_id' => 'required|exists:profils,id',
+            'participants' => 'nullable|array',
+            'participants.*' => 'string',
+            'commentaire' => 'nullable|string',
+        ]);
 
-        return response()->json($activite,200);
+        $activite->update([
+            'nom_activite' => $request->nom_activite,
+            'statut' => $request->statut,
+            'responsable' => $request->responsable,
+            'participants' => $request->participants ?? [],
+            'commentaire' => $request->commentaire,
+            'date_debut' => $request->date_debut,
+            'date_fin' => $request->date_fin,
+            'profil_id' => $request->profil_id,
+        ]);
+
+        return response()->json($activite, 200);
     }
 
-
-    // DELETE
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        if ($request->user()->role !== 'Administrateur') {
+            return response()->json(['message' => 'Accès interdit'], 403);
+        }
 
-        Activite::destroy($id);
+        $activite = Activite::findOrFail($id);
+        $activite->delete();
 
         return response()->json([
-            'message'=>'Activite supprimée'
-        ],200);
-
+            'message' => 'Activité supprimée',
+        ], 200);
     }
 
-
-    // SEARCH
     public function search($keyword)
     {
+        $activites = Activite::where('nom_activite', 'like', "%$keyword%")
+            ->orWhere('statut', 'like', "%$keyword%")
+            ->orWhere('responsable', 'like', "%$keyword%")
+            ->get();
 
-        $activites = Activite::where('nom_activite','like',"%$keyword%")
-        ->orWhere('responsable','like',"%$keyword%")
-        ->orWhere('statut','like',"%$keyword%")
-        ->get();
-
-        return response()->json($activites,200);
-
+        return response()->json($activites, 200);
     }
 
+    private function normalizeDate(?string $value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        $formats = ['d-m-Y', 'd/m/Y', 'Y-m-d'];
+
+        foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, trim($value))->format('Y-m-d');
+            } catch (\Throwable $exception) {
+            }
+        }
+
+        return $value;
+    }
 }

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Activite extends Model
 {
@@ -14,23 +13,18 @@ class Activite extends Model
         'participants',
         'commentaire',
         'date_debut',
-        'date_fin'
+        'date_fin',
+        'profil_id',
     ];
 
     protected $casts = [
         'participants' => 'array',
-        'date_debut' => 'date',
-        'date_fin' => 'date',
+        'date_debut' => 'date:Y-m-d',
+        'date_fin' => 'date:Y-m-d',
     ];
 
-    // Format JSON sortie → dd/mm/yyyy
-    public function getDateDebutAttribute($value)
+    public function profil()
     {
-        return Carbon::parse($value)->format('d/m/Y');
-    }
-
-    public function getDateFinAttribute($value)
-    {
-        return Carbon::parse($value)->format('d/m/Y');
+        return $this->belongsTo(Profil::class);
     }
 }

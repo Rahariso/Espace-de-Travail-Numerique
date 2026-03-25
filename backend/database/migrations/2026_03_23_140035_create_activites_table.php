@@ -10,19 +10,14 @@ return new class extends Migration
     {
         Schema::create('activites', function (Blueprint $table) {
             $table->id();
-
             $table->string('nom_activite');
             $table->string('statut');
             $table->string('responsable');
-
-            // plusieurs participants
             $table->json('participants')->nullable();
-
             $table->text('commentaire')->nullable();
-
             $table->date('date_debut');
             $table->date('date_fin');
-
+            $table->foreignId('profil_id')->constrained('profils')->cascadeOnDelete();
             $table->timestamps();
         });
     }
