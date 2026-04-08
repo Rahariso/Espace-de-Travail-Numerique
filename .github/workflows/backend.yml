@@ -30,6 +30,8 @@ jobs:
           ftp_password: ${{ secrets.FTP_PASSWORD }}
           local_source_dir: "./"
           dist_target_dir: "public_html/drse.bambaray.mg/backend/"
+          only_newer: "true"
+          ignore_time: "true"
           delete: "false"
           exclude: |
             .git*
